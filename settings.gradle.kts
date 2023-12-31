@@ -84,4 +84,6 @@ include("passgen:diceware")
 
 include("passgen:random")
 
+include("passkeys")
+
 include("ui:compose")
