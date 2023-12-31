@@ -7,7 +7,6 @@
 plugins {
   id("com.github.android-password-store.android-library")
   id("com.github.android-password-store.kotlin-android")
-  id("com.github.android-password-store.psl-plugin")
 }
 
 android {
@@ -16,6 +15,7 @@ android {
     consumerProguardFiles("consumer-rules.pro")
   }
   sourceSets { getByName("test") { resources.directories.add("src/main/assets") } }
+  buildFeatures { androidResources = true }
   namespace = "app.passwordstore.passkeys"
 }
 
