@@ -8,6 +8,7 @@ package app.passwordstore.passkeys
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CreatePublicKeyCredentialResponse
@@ -33,6 +34,7 @@ import logcat.LogPriority
 import logcat.logcat
 
 @AndroidEntryPoint
+@RequiresApi(34)
 class AppPasskeyProviderActivity : AppCompatActivity() {
 
   @Inject lateinit var passkeyStorage: PasskeyStorage

@@ -128,7 +128,8 @@
       android:name=".passkeys.AppPasskeyCredentialProviderService"
       android:enabled="@bool/isAtLeastU"
       android:exported="true"
-      android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE">
+      android:permission="android.permission.BIND_CREDENTIAL_PROVIDER_SERVICE"
+      tools:targetApi="34">
       <intent-filter>
         <action android:name="android.service.credentials.CredentialProviderService" />
       </intent-filter>
@@ -143,8 +144,8 @@
       android:exported="false"
       android:finishOnTaskLaunch="true"
       android:noHistory="true"
-      android:theme="@style/NoBackgroundThemeM3" />
-
+      android:theme="@style/NoBackgroundThemeM3"
+      tools:targetApi="34" />
     <activity
       android:name=".ui.folderselect.SelectFolderActivity"
       android:exported="false" />

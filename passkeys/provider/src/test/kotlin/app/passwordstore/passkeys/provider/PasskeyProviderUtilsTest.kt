@@ -89,7 +89,7 @@ class PasskeyProviderUtilsTest {
       response.response.signature,
     )
     assertEquals(
-      PasskeyProviderUtils.encodeBase64Url(assertion.userHandle!!),
+      PasskeyProviderUtils.encodeBase64Url(requireNotNull(assertion.userHandle)),
       response.response.userHandle,
     )
     assertTrue(clientDataJson.contains("\"type\":\"webauthn.get\""))
