@@ -8,6 +8,7 @@ package app.passwordstore.passkeys
 import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.credentials.CreatePublicKeyCredentialRequest
 import androidx.credentials.CreatePublicKeyCredentialResponse
@@ -24,6 +25,8 @@ import app.passwordstore.passkeys.provider.PasskeyCredentialProviderService
 import app.passwordstore.passkeys.provider.PasskeyProviderUtils
 import app.passwordstore.passkeys.storage.PasskeyStorage
 import app.passwordstore.util.coroutines.DispatcherProvider
+import app.passwordstore.util.extensions.sharedPrefs
+import app.passwordstore.util.settings.PreferenceKeys
 import com.github.michaelbull.result.fold
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
@@ -33,6 +36,7 @@ import logcat.LogPriority
 import logcat.logcat
 
 @AndroidEntryPoint
+@RequiresApi(34)
 class AppPasskeyProviderActivity : AppCompatActivity() {
 
   @Inject lateinit var passkeyStorage: PasskeyStorage
@@ -118,13 +122,9 @@ class AppPasskeyProviderActivity : AppCompatActivity() {
       }
     }
 
-    val newSignCount = credential.signCount + 1u
-    passkeyStorage
-      .updateSignCount(credential.credentialId, newSignCount)
-      .fold(
-        success = {},
-        failure = { logcat(LogPriority.WARN) { "Failed to update sign count: $it" } },
-      )
+    val constantSignatureCounter =
+      sharedPrefs.getBoolean(PreferenceKeys.PASSKEY_CONSTANT_SIGNATURE_COUNTER, true)
+    val newSignCount = if (constantSignatureCounter) 0u else credential.signCount + 1u
 
     val requestJson = option.requestJson
     val assertion =

@@ -7,7 +7,9 @@ package app.passwordstore.passkeys.provider
 
 import android.content.Context
 import android.service.autofill.Dataset
+import android.service.autofill.Field
 import android.service.autofill.FillResponse
+import android.service.autofill.Presentations
 import android.view.autofill.AutofillId
 import android.view.autofill.AutofillValue
 import android.widget.RemoteViews
@@ -20,9 +22,9 @@ import kotlinx.coroutines.runBlocking
 import logcat.LogPriority
 import logcat.logcat
 
+@RequiresApi(33)
 public object PasskeyAutofillHelper {
 
-  @RequiresApi(android.os.Build.VERSION_CODES.O)
   public fun addPasskeyDatasets(
     builder: FillResponse.Builder,
     context: Context,
@@ -31,7 +33,6 @@ public object PasskeyAutofillHelper {
     passkeyStorage: PasskeyStorage,
     maxDatasets: Int = 3,
   ): Int {
-    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.O) return 0
     if (usernameAutofillId == null) return 0
 
     val credentials =
@@ -61,18 +62,24 @@ public object PasskeyAutofillHelper {
     return datasetCount
   }
 
-  @RequiresApi(android.os.Build.VERSION_CODES.O)
   private fun makePasskeyDataset(
     context: Context,
     usernameAutofillId: AutofillId,
     credential: PasskeyCredential,
   ): Dataset? {
-    val builder = Dataset.Builder(createRemoteViews(context, credential.displayNameOrName()))
-    builder.setValue(usernameAutofillId, AutofillValue.forText(credential.user.name))
+    val builder =
+      Dataset.Builder(
+        Presentations.Builder()
+          .setMenuPresentation(createRemoteViews(context, credential.displayNameOrName()))
+          .build()
+      )
+    builder.setField(
+      usernameAutofillId,
+      Field.Builder().setValue(AutofillValue.forText(credential.user.name)).build(),
+    )
     return builder.build()
   }
 
-  @RequiresApi(android.os.Build.VERSION_CODES.O)
   private fun createRemoteViews(context: Context, displayText: String): RemoteViews {
     val packageName = context.packageName
     return RemoteViews(packageName, android.R.layout.simple_list_item_1).apply {

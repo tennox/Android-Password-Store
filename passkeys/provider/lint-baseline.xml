@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<issues format="6" by="lint 9.1.0" type="baseline" client="gradle" dependencies="false" name="AGP (9.1.0)" variant="all" version="9.1.0">
+
+    <issue
+        id="InvalidPackage"
+        message="Invalid package reference in org.bouncycastle:bcprov-jdk18on; not included in Android: `javax.naming.directory`. Referenced from `org.bouncycastle.jce.provider.CrlCache`.">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.bouncycastle/bcprov-jdk18on/1.83/310e719f391bd9f4ee5103ca299c172643efb595/bcprov-jdk18on-1.83.jar"/>
+    </issue>
+
+    <issue
+        id="InvalidPackage"
+        message="Invalid package reference in org.bouncycastle:bcprov-jdk18on; not included in Android: `javax.naming`. Referenced from `org.bouncycastle.jce.provider.X509LDAPCertStoreSpi`.">
+        <location
+            file="$GRADLE_USER_HOME/caches/modules-2/files-2.1/org.bouncycastle/bcprov-jdk18on/1.83/310e719f391bd9f4ee5103ca299c172643efb595/bcprov-jdk18on-1.83.jar"/>
+    </issue>
+
+    <issue
+        id="RawDispatchersUse"
+        message="Use SlackDispatchers."
+        errorLine1="      runBlocking(Dispatchers.IO) {"
+        errorLine2="                  ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/app/passwordstore/passkeys/provider/PasskeyAutofillHelper.kt"
+            line="39"
+            column="19"/>
+    </issue>
+
+    <issue
+        id="RawDispatchersUse"
+        message="Use SlackDispatchers."
+        errorLine1="    return runBlocking(Dispatchers.IO) {"
+        errorLine2="                       ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/app/passwordstore/passkeys/provider/PasskeyAutofillHelper.kt"
+            line="91"
+            column="24"/>
+    </issue>
+
+    <issue
+        id="RawDispatchersUse"
+        message="Use SlackDispatchers."
+        errorLine1="              runBlocking(Dispatchers.IO) {"
+        errorLine2="                          ~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/app/passwordstore/passkeys/provider/PasskeyCredentialProviderService.kt"
+            line="79"
+            column="27"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="`encodeToString` is defined both as a member in class `kotlinx.serialization.json.Json` and an extension in package `kotlinx.serialization`. The defined behavior for this is to use the member, but since the extension is explicitly imported into this file, there&apos;s a chance that this was not expected. (One common way this happens is for members to be added to a class after code was already written to use an extension)."
+        errorLine1="    return json.encodeToString(response)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/app/passwordstore/passkeys/provider/PasskeyProviderUtils.kt"
+            line="89"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="`encodeToString` is defined both as a member in class `kotlinx.serialization.json.Json` and an extension in package `kotlinx.serialization`. The defined behavior for this is to use the member, but since the extension is explicitly imported into this file, there&apos;s a chance that this was not expected. (One common way this happens is for members to be added to a class after code was already written to use an extension)."
+        errorLine1="    return json.encodeToString(response)"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/app/passwordstore/passkeys/provider/PasskeyProviderUtils.kt"
+            line="128"
+            column="12"/>
+    </issue>
+
+    <issue
+        id="MemberExtensionConflict"
+        message="`encodeToString` is defined both as a member in class `kotlinx.serialization.json.Json` and an extension in package `kotlinx.serialization`. The defined behavior for this is to use the member, but since the extension is explicitly imported into this file, there&apos;s a chance that this was not expected. (One common way this happens is for members to be added to a class after code was already written to use an extension)."
+        errorLine1="    return json.encodeToString(ClientDataJson(type = type, challenge = challenge, origin = origin))"
+        errorLine2="           ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~">
+        <location
+            file="src/main/kotlin/app/passwordstore/passkeys/provider/PasskeyProviderUtils.kt"
+            line="181"
+            column="12"/>
+    </issue>
+
+</issues>

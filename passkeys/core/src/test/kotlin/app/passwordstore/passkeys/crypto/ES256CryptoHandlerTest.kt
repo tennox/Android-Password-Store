@@ -105,8 +105,9 @@ class ES256CryptoHandlerTest {
         challenge = ByteArray(32) { it.toByte() },
       )
 
-    val credential =
-      credentialResult.getOrElse { throw AssertionError("Credential creation failed") }
+    val credential = credentialResult.getOrElse {
+      throw AssertionError("Credential creation failed")
+    }
 
     val assertionResult =
       cryptoHandler.getAssertion(
