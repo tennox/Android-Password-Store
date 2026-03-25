@@ -20,11 +20,6 @@ class PasskeySettings(private val activity: FragmentActivity) : SettingsProvider
         titleRes = R.string.pref_passkey_constant_signature_counter_title
         summaryRes = R.string.pref_passkey_constant_signature_counter_summary
       }
-      switch(PreferenceKeys.PASSKEY_AUTO_GIT_SYNC) {
-        defaultValue = true
-        titleRes = R.string.pref_passkey_auto_git_sync_title
-        summaryRes = R.string.pref_passkey_auto_git_sync_summary
-      }
     }
   }
 }
