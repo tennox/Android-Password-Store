@@ -15,7 +15,7 @@ android {
     minSdk = 23
     consumerProguardFiles("consumer-rules.pro")
   }
-  sourceSets { getByName("test") { resources.srcDir("src/main/assets") } }
+  sourceSets { getByName("test") { resources.directories.add("src/main/assets") } }
   namespace = "app.passwordstore.passkeys"
 }
 
@@ -23,7 +23,6 @@ dependencies {
   implementation(libs.androidx.annotation)
   implementation(libs.androidx.core.ktx)
   implementation(libs.androidx.credentials)
-  implementation(libs.androidx.credentials.play.services)
   implementation(libs.kotlinx.coroutines.core)
   implementation(libs.thirdparty.logcat)
   testImplementation(libs.bundles.testDependencies)
