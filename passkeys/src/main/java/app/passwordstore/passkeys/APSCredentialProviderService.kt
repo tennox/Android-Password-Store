@@ -38,7 +38,7 @@ public class APSCredentialProviderService : CredentialProviderService() {
   override fun onBeginGetCredentialRequest(
     request: BeginGetCredentialRequest,
     cancellationSignal: CancellationSignal,
-    callback: OutcomeReceiver<BeginGetCredentialResponse, GetCredentialException>
+    callback: OutcomeReceiver<BeginGetCredentialResponse, GetCredentialException>,
   ) {}
 
   override fun onClearCredentialStateRequest(
@@ -68,7 +68,7 @@ public class APSCredentialProviderService : CredentialProviderService() {
     createEntries.add(
       CreateEntry(
         DEFAULT_ACCOUNT_NAME,
-        createNewPendingIntent(DEFAULT_ACCOUNT_NAME, CREATE_PASSKEY_INTENT_ACTION)
+        createNewPendingIntent(DEFAULT_ACCOUNT_NAME, CREATE_PASSKEY_INTENT_ACTION),
       )
     )
 

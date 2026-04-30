@@ -15,7 +15,7 @@ android {
     consumerProguardFiles("consumer-rules.pro")
   }
   sourceSets { getByName("test") { resources.directories.add("src/main/assets") } }
-  buildFeatures { androidResources = true }
+  buildFeatures { android.androidResources.enable = true }
   namespace = "app.passwordstore.passkeys"
 }
 
