@@ -51,6 +51,7 @@ dependencies {
   implementation(libs.androidx.biometricKtx)
   implementation(libs.androidx.constraintlayout)
   implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.credentials)
   implementation(libs.androidx.documentfile)
   implementation(libs.androidx.fragment.ktx)
   implementation(libs.androidx.work.runtime.ktx)
