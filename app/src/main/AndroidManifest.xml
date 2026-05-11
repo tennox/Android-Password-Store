@@ -31,7 +31,7 @@
     android:supportsRtl="true"
     android:theme="@style/AppThemeM3"
     tools:ignore="GoogleAppIndexingWarning"
-    tools:targetApi="s">
+    tools:targetApi="34">
 
     <activity
       android:name=".ui.passwords.PasswordStore"
