@@ -44,8 +44,9 @@ import java.security.MessageDigest
 import java.security.SecureRandom
 import java.security.Signature
 import app.passwordstore.util.credman.CredmanUtils
+import android.os.Build
 
-@RequiresApi(34)
+@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 class UDCakeCredentialProviderService: CredentialProviderService() {
 
     override fun onBeginCreateCredentialRequest(

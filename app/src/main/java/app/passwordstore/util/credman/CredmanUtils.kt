@@ -73,26 +73,25 @@ object CredmanUtils {
         }
     }
 
-    private fun handleCreatePasskeyQuery(request: BeginCreateCredentialRequest): BeginCreateCredentialResponse {
-        val createEntries: MutableList<CreateEntry> = mutableListOf()
+    private fun handleCreatePasskeyQuery(
+        request: BeginCreatePublicKeyCredentialRequest
+    ): BeginCreateCredentialResponse {
 
-        val device = Bundle()
-        device.putString(
-            UDCakeCredentialProviderService.ACCOUNT_ID,
-            UDCakeCredentialProviderService.DEVICE_ACCOUNT
-        )
-
-        createEntries.add(
-            CreateEntry(
-                context.getString(R.string.key_create_passkey),
-                createPendingIntent(
-                    UDCakeCredentialProviderService.CREATE_PASSKEY_INTENT_ACTION,
-                    device
-                ),
+        return BeginCreateCredentialResponse.Builder()
+            .addCreateEntry(
+                CreateEntry.Builder(
+                   context.getString(R.string.key_create_passkey),
+                   createPendingIntent(
+                       UDCakeCredentialProviderService.CREATE_PASSKEY_INTENT_ACTION,
+                   ),
+                )
+                .setDescription(
+                   context.getString(R.string.app_name)
+                )
+                .setAutoSelectAllowed(true)
+                .build()
             )
-        )
-
-        return BeginCreateCredentialResponse(createEntries)
+            .build()
     }
 
 }
