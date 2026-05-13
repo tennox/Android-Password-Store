@@ -92,6 +92,7 @@
   <string name="username">Username</string>
   <string name="otp_label_format">OTP (expires in %ds)</string>
   <string name="edit_password">Edit password</string>
+  <string name="edit_passkey">Edit passkey</string>
   <string name="copy_password">Copy password</string>
   <string name="share_as_plaintext">Share as plaintext</string>
 
@@ -257,6 +258,7 @@
 
   <string name="ssh_key_does_not_exist">Unable to open the ssh private key, please check that the file exists</string>
   <string name="new_password_title">New password</string>
+  <string name="new_passkey_title">New passkey</string>
   <string name="git_tools">Utilities</string>
   <string name="abort_rebase">Abort rebase and push new branch</string>
   <string name="reset_to_remote">Hard reset to remote branch</string>

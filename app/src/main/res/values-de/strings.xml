@@ -91,6 +91,7 @@
   <string name="username">Benutzername</string>
   <string name="otp_label_format">OTP (läuft in %ds ab)</string>
   <string name="edit_password">Passwort bearbeiten</string>
+  <string name="edit_passkey">Passkey bearbeiten</string>
   <string name="copy_password">Passwort kopieren</string>
   <string name="share_as_plaintext">Als Klartext teilen</string>
 
@@ -256,6 +257,7 @@
 
   <string name="ssh_key_does_not_exist">Der private SSH-Schlüssel konnte nicht geöffnet werden. Bitte überprüfen Sie, ob die Datei existiert.</string>
   <string name="new_password_title">Neues Passwort</string>
+  <string name="new_passkey_title">Neuer Passkey</string>
   <string name="git_tools">Hilfsmittel</string>
   <string name="abort_rebase">Rebase abbrechen und neuen Branch pushen</string>
   <string name="reset_to_remote">Hard Reset auf Remote-Branch</string>
