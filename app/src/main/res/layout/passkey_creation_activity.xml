@@ -39,5 +39,68 @@
         tools:text="CATEGORY HERE" />
     </com.google.android.material.textfield.TextInputLayout>
 
+    <com.google.android.material.textfield.TextInputLayout
+      android:id="@+id/cred_id_layout"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_margin="8dp"
+      android:hint="@string/cred_id_hint"
+      app:boxStrokeColor="?attr/colorControlNormal"
+      android:textColorHint="?attr/colorControlNormal"
+      android:alpha="0.6"  
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@id/directory_input_layout">
+
+      <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/cred_id"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.6"  
+        android:focusable="false"
+        android:inputType="none"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+      android:id="@+id/rp_name_layout"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_margin="8dp"
+      android:hint="@string/rp_name_hint"
+      app:boxStrokeColor="?attr/colorControlNormal"
+      android:textColorHint="?attr/colorControlNormal"
+      android:alpha="0.6"  
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@id/cred_id_layout">
+
+      <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/rp_name"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.6"  
+        android:focusable="false"
+        android:inputType="none"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
+    <com.google.android.material.textfield.TextInputLayout
+      android:id="@+id/username_input_layout"
+      android:layout_width="match_parent"
+      android:layout_height="wrap_content"
+      android:layout_margin="8dp"
+      android:hint="@string/crypto_username_hint"
+      app:boxStrokeColor="?attr/colorControlNormal"
+      android:textColorHint="?attr/colorControlNormal"
+      android:alpha="0.6"  
+      app:layout_constraintStart_toStartOf="parent"
+      app:layout_constraintTop_toBottomOf="@id/rp_name_layout">
+
+      <com.google.android.material.textfield.TextInputEditText
+        android:id="@+id/username"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:alpha="0.6"  
+        android:focusable="false"
+        android:inputType="none"/>
+    </com.google.android.material.textfield.TextInputLayout>
+
   </androidx.constraintlayout.widget.ConstraintLayout>
 </ScrollView>

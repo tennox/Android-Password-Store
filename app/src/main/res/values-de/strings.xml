@@ -477,4 +477,10 @@
   <string name="pin_entry_title">PIN-Verifizierung</string>
   <string name="pin_entry_description">Geben Sie Ihren PIN-Code ein, um den Eintrag anzuzeigen.</string>
   <string name="pin_entry_wrong_input">Falsche Eingabe</string>
+
+  <!-- Passkeys -->
+  <string name="key_create_passkey">Neuer Passkey</string>
+  <string name="cred_id_hint">WebAuthn-Credential-ID</string>
+  <string name="rp_name_hint">Servicename</string>
+
 </resources>

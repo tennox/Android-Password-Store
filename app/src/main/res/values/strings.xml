@@ -480,6 +480,8 @@
   <string name="pin_entry_wrong_input">Wrong input</string>
 
   <!-- Passkeys -->
-  <string name="key_create_passkey">Create passkey</string>
+  <string name="key_create_passkey">New passkey</string>
+  <string name="cred_id_hint">WebAuthn credential ID</string>
+  <string name="rp_name_hint">Service name</string>
 
 </resources>

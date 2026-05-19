@@ -5,6 +5,7 @@
 
 package app.passwordstore.ui.crypto
 
+import java.security.SecureRandom
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -72,6 +73,9 @@ import java.io.ByteArrayOutputStream
 import java.io.IOException
 import java.nio.CharBuffer
 import java.nio.file.Paths
+import java.nio.file.Files
+import java.nio.file.Path
+import kotlin.io.path.isDirectory
 import javax.inject.Inject
 import kotlin.io.path.absolutePathString
 import kotlin.io.path.createDirectories
@@ -83,6 +87,19 @@ import kotlinx.coroutines.withContext
 import logcat.LogPriority.ERROR
 import logcat.asLog
 import logcat.logcat
+import androidx.credentials.CreatePublicKeyCredentialRequest
+import androidx.credentials.CreatePublicKeyCredentialResponse
+import androidx.credentials.GetCredentialResponse
+import androidx.credentials.GetPublicKeyCredentialOption
+import androidx.credentials.PublicKeyCredential
+import androidx.credentials.provider.CallingAppInfo
+import androidx.credentials.provider.PendingIntentHandler
+import androidx.credentials.provider.ProviderGetCredentialRequest
+import androidx.credentials.webauthn.AuthenticatorAssertionResponse
+import androidx.credentials.webauthn.AuthenticatorAttestationResponse
+import androidx.credentials.webauthn.FidoPublicKeyCredential
+import androidx.credentials.webauthn.PublicKeyCredentialCreationOptions
+import androidx.credentials.webauthn.PublicKeyCredentialRequestOptions
 
 @AndroidEntryPoint
 class PasskeyCreationActivity : BasePGPActivity() {
@@ -92,11 +109,16 @@ class PasskeyCreationActivity : BasePGPActivity() {
 
   private val suggestedName by unsafeLazy { intent.getStringExtra(EXTRA_FILE_NAME) }
   private val suggestedEntryChars by unsafeLazy { intent.getCharArrayExtra(EXTRA_ENTRY) }
-  private val shouldGeneratePassword by unsafeLazy {
-    intent.getBooleanExtra(EXTRA_GENERATE_PASSWORD, false)
-  }
+
   private val editing by unsafeLazy { intent.getBooleanExtra(EXTRA_EDITING, false) }
-  private var copy: Boolean = false
+
+  private val publicKeyRequest: CreatePublicKeyCredentialRequest? by unsafeLazy {
+    val systemRequest = PendingIntentHandler.retrieveProviderCreateCredentialRequest(intent)
+
+    if (systemRequest != null && systemRequest.callingRequest is CreatePublicKeyCredentialRequest)
+      systemRequest.callingRequest as CreatePublicKeyCredentialRequest
+    else null 
+  }
 
   override fun onDestroy() {
     with(binding) {
@@ -107,10 +129,19 @@ class PasskeyCreationActivity : BasePGPActivity() {
   private val selectFolderAction =
     registerForActivityResult(StartActivityForResult()) { result ->
       if (result.resultCode == RESULT_OK) {
-        result.data?.getStringExtra(SelectFolderActivity.SELECTED_FOLDER_PATH)?.let { fullPath ->
-          val relPath = PasswordRepository.getRelativePath(fullPath, repoPath)
-          binding.directory.setText(if (!relPath.isEmpty()) relPath else "/")
+        val rpId = result.data?.getStringExtra(PasswordStore.REQUEST_ARG_PATH)?.let { oldPath ->
+          Paths.get(oldPath).fileName.toString()  
         }
+        val relPath = result.data?.getStringExtra(SelectFolderActivity.SELECTED_FOLDER_PATH)?.let { fullPath ->
+          PasswordRepository.getRelativePath(fullPath, repoPath)
+        } ?: ""
+        rpId?.let {
+          val path =
+            if(relPath.isEmpty()) "/${rpId}"
+            else if(Paths.get(relPath).endsWith(rpId)) relPath
+            else Paths.get(relPath, rpId).toAbsolutePath().toString()
+          binding.directory.setText(path)
+        }  
       }
     }
 
@@ -119,28 +150,69 @@ class PasskeyCreationActivity : BasePGPActivity() {
     supportActionBar?.setDisplayHomeAsUpEnabled(true)
     title =
       if (editing) getString(R.string.edit_passkey) else getString(R.string.new_passkey_title)
+
     with(binding) {
       enableEdgeToEdgeView(root)
       setContentView(root)
 
-      val suggestedEntry: PasswordEntry? = suggestedEntryChars?.let { encrypted ->
-        AESEncryption.decrypt(encrypted)?.let { decrypted ->
-          passwordEntryFactory.create(decrypted).also { decrypted.wipe() }
-        }
-      }
-
       directory.inputType = InputType.TYPE_NULL
-      val relPath = PasswordRepository.getRelativePath(fullPath, repoPath)
-      directory.setText(if (relPath.isEmpty()) "/" else relPath)
-
       directory.setOnClickListener {
         val intent = Intent(this@PasskeyCreationActivity, SelectFolderActivity::class.java)
         intent.putExtra(PasswordStore.REQUEST_ARG_PATH, directory.text.toString().trimEnd('/'))
         selectFolderAction.launch(intent)
       }
+    }  
 
-      suggestedEntry?.clear()
+    publicKeyRequest?.let{ request -> // passkey creation requested
+      val credentialId = ByteArray(32)
+      SecureRandom().nextBytes(credentialId)
+
+      val credIdHexShort = credentialId.toHexString(endIndex = 8)
+
+      val publicKeyOptions: PublicKeyCredentialCreationOptions = PublicKeyCredentialCreationOptions(request.requestJson)
+
+      val rpId = publicKeyOptions.rp.id
+      val rpName = publicKeyOptions.rp.name
+      val userDisplayName = publicKeyOptions.user.displayName
+      val userName = publicKeyOptions.user.name
+      val prefAlgo = publicKeyOptions.pubKeyCredParams[0]
+
+      val suggestedFullPath = findSubdirectoryRecursive(repoPath, publicKeyOptions.rp.id) ?: Paths.get(repoPath, rpId).toAbsolutePath().toString()
+      val relPath = PasswordRepository.getRelativePath(suggestedFullPath, repoPath)
+
+      logcat {"++++++++++++++++++${rpId}+++++++++++++++"}
+      logcat {"++++++++++++++++++${rpName}+++++++++++++++"}
+      logcat {"++++++++++++++++++${userName}+++++++++++++++"}
+      logcat {"++++++++++++++++++${userDisplayName}+++++++++++++++"}
+      logcat {"++++++++++++++++++${prefAlgo}+++++++++++++++"}
+      logcat {"++++++++++++++++++${request.origin}+++++++++++++++"}
+
+      binding.directory.setText(relPath)
+      binding.credId.setText("${credentialId.toHexString()}")
+      binding.rpName.setText("${rpName}")
+      binding.rpNameLayout.isVisible = rpId != rpName
+      binding.username.setText("${userName}")
     }
+
+    //with(binding) {
+    //  val suggestedEntry: PasswordEntry? = suggestedEntryChars?.let { encrypted ->
+    //    AESEncryption.decrypt(encrypted)?.let { decrypted ->
+    //      passwordEntryFactory.create(decrypted).also { decrypted.wipe() }
+    //    }
+    //  }
+
+    //  directory.inputType = InputType.TYPE_NULL
+    //  val relPath = PasswordRepository.getRelativePath(fullPath, repoPath)
+    //  directory.setText(if (relPath.isEmpty()) "/" else relPath)
+
+    //  directory.setOnClickListener {
+    //    val intent = Intent(this@PasskeyCreationActivity, SelectFolderActivity::class.java)
+    //    intent.putExtra(PasswordStore.REQUEST_ARG_PATH, directory.text.toString().trimEnd('/'))
+    //    selectFolderAction.launch(intent)
+    //  }
+
+    //  suggestedEntry?.clear()
+    //}
   }
 
   override fun onCreateOptionsMenu(menu: Menu): Boolean {
@@ -160,7 +232,6 @@ class PasskeyCreationActivity : BasePGPActivity() {
         onBackPressedDispatcher.onBackPressed()
       }
       R.id.save_password -> {
-        copy = false
         requireKeysExist {
           requireEncryptionKeysExist(binding.directory.text.toString()) { ids -> encrypt(ids) }
         }
@@ -172,6 +243,14 @@ class PasskeyCreationActivity : BasePGPActivity() {
 
   /** Encrypts the entry */
   private fun encrypt(identifiers: List<PGPIdentifier>) {
+  }
+
+  private fun findSubdirectoryRecursive(rootPath: String, targetName: String): String? {
+    val match = Files.walk(Paths.get(rootPath))
+      .filter { it.isDirectory() && it.fileName.toString() == targetName }
+      .findFirst()
+      .orElse(null)
+    return match?.let {match.toAbsolutePath().toString()}  
   }
 
   companion object {
