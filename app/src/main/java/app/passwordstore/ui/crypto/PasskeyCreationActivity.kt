@@ -139,9 +139,9 @@ class PasskeyCreationActivity : BasePGPActivity() {
           val path =
             if(relPath.isEmpty()) "/${rpId}"
             else if(Paths.get(relPath).endsWith(rpId)) relPath
-            else Paths.get(relPath, rpId).toAbsolutePath().toString()
+            else Paths.get(relPath, rpId).absolutePathString()
           binding.directory.setText(path)
-        }  
+        }
       }
     }
 
@@ -167,31 +167,22 @@ class PasskeyCreationActivity : BasePGPActivity() {
       val credentialId = ByteArray(32)
       SecureRandom().nextBytes(credentialId)
 
-      val credIdHexShort = credentialId.toHexString(endIndex = 8)
+      val publicKeyOptions = PublicKeyCredentialCreationOptions(request.requestJson)
 
-      val publicKeyOptions: PublicKeyCredentialCreationOptions = PublicKeyCredentialCreationOptions(request.requestJson)
-
-      val rpId = publicKeyOptions.rp.id
-      val rpName = publicKeyOptions.rp.name
-      val userDisplayName = publicKeyOptions.user.displayName
-      val userName = publicKeyOptions.user.name
-      val prefAlgo = publicKeyOptions.pubKeyCredParams[0]
-
-      val suggestedFullPath = findSubdirectoryRecursive(repoPath, publicKeyOptions.rp.id) ?: Paths.get(repoPath, rpId).toAbsolutePath().toString()
+      val suggestedFullPath = findSubdirectoryRecursive(repoPath, publicKeyOptions.rp.id) ?: Paths.get(repoPath, publicKeyOptions.rp.id).absolutePathString()
       val relPath = PasswordRepository.getRelativePath(suggestedFullPath, repoPath)
 
-      logcat {"++++++++++++++++++${rpId}+++++++++++++++"}
-      logcat {"++++++++++++++++++${rpName}+++++++++++++++"}
-      logcat {"++++++++++++++++++${userName}+++++++++++++++"}
-      logcat {"++++++++++++++++++${userDisplayName}+++++++++++++++"}
+      with(binding) {
+        directory.setText(relPath)
+        credId.setText(credentialId.toHexString())
+        username.setText(publicKeyOptions.user.name)
+        fullname.setText(publicKeyOptions.user.displayName)
+        fullnameLayout.isVisible = publicKeyOptions.user.displayName != publicKeyOptions.user.name
+      }
+
+      val prefAlgo = publicKeyOptions.pubKeyCredParams[0]
       logcat {"++++++++++++++++++${prefAlgo}+++++++++++++++"}
       logcat {"++++++++++++++++++${request.origin}+++++++++++++++"}
-
-      binding.directory.setText(relPath)
-      binding.credId.setText("${credentialId.toHexString()}")
-      binding.rpName.setText("${rpName}")
-      binding.rpNameLayout.isVisible = rpId != rpName
-      binding.username.setText("${userName}")
     }
 
     //with(binding) {
@@ -250,7 +241,7 @@ class PasskeyCreationActivity : BasePGPActivity() {
       .filter { it.isDirectory() && it.fileName.toString() == targetName }
       .findFirst()
       .orElse(null)
-    return match?.let {match.toAbsolutePath().toString()}  
+    return match?.let {match.absolutePathString()}  
   }
 
   companion object {

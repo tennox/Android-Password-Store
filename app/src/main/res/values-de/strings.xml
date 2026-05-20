@@ -480,7 +480,8 @@
 
   <!-- Passkeys -->
   <string name="key_create_passkey">Neuer Passkey</string>
-  <string name="cred_id_hint">WebAuthn-Credential-ID</string>
+  <string name="cred_id_hint">WebAuthn-Anmeldedaten-ID</string>
   <string name="rp_name_hint">Servicename</string>
+  <string name="fullname_hint">Vollständiger Benutzername</string>
 
 </resources>
