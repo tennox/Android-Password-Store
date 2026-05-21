@@ -4,6 +4,8 @@
  */
 package app.passwordstore.util.credman
 
+import android.util.Base64
+import java.security.MessageDigest
 import app.passwordstore.util.services.UDCakeCredentialProviderService
 import app.passwordstore.util.extensions.getString
 import android.annotation.SuppressLint
@@ -32,6 +34,8 @@ import androidx.credentials.webauthn.PublicKeyCredentialRequestOptions
 import app.passwordstore.R
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
+import app.passwordstore.util.extensions.b64Encode
+import app.passwordstore.util.extensions.b64Decode
 
 object CredmanUtils {
 
@@ -95,4 +99,13 @@ object CredmanUtils {
             .build()
     }
 
+    fun appInfoToOrigin(info: CallingAppInfo): String {
+        val cert = info.signingInfo.apkContentsSigners[0].toByteArray()
+        val md = MessageDigest.getInstance("SHA-256")
+        val certHash = md.digest(cert)
+
+        val origin="android:apk-key-hash:${certHash.b64Encode()}"
+
+        return origin
+    }
 }

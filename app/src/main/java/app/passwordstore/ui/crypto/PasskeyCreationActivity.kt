@@ -5,7 +5,15 @@
 
 package app.passwordstore.ui.crypto
 
+import java.math.BigInteger
+import java.security.interfaces.ECPrivateKey
+import java.security.interfaces.ECPublicKey
+import java.security.spec.ECGenParameterSpec
+import java.security.spec.ECPoint
 import java.security.SecureRandom
+import java.security.KeyPair
+import java.security.PrivateKey
+import java.security.KeyPairGenerator
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -167,20 +175,20 @@ class PasskeyCreationActivity : BasePGPActivity() {
       val credentialId = ByteArray(32)
       SecureRandom().nextBytes(credentialId)
 
-      val publicKeyOptions = PublicKeyCredentialCreationOptions(request.requestJson)
+      val requestOptions = PublicKeyCredentialCreationOptions(request.requestJson)
 
-      val suggestedFullPath = findSubdirectoryRecursive(repoPath, publicKeyOptions.rp.id) ?: Paths.get(repoPath, publicKeyOptions.rp.id).absolutePathString()
+      val suggestedFullPath = findSubdirectoryRecursive(repoPath, requestOptions.rp.id) ?: Paths.get(repoPath, requestOptions.rp.id).absolutePathString()
       val relPath = PasswordRepository.getRelativePath(suggestedFullPath, repoPath)
 
       with(binding) {
         directory.setText(relPath)
         credId.setText(credentialId.toHexString())
-        username.setText(publicKeyOptions.user.name)
-        fullname.setText(publicKeyOptions.user.displayName)
-        fullnameLayout.isVisible = publicKeyOptions.user.displayName != publicKeyOptions.user.name
+        username.setText(requestOptions.user.name)
+        fullname.setText(requestOptions.user.displayName)
+        fullnameLayout.isVisible = requestOptions.user.displayName != requestOptions.user.name
       }
 
-      val prefAlgo = publicKeyOptions.pubKeyCredParams[0]
+      val prefAlgo = requestOptions.pubKeyCredParams[0]
       logcat {"++++++++++++++++++${prefAlgo}+++++++++++++++"}
       logcat {"++++++++++++++++++${request.origin}+++++++++++++++"}
     }
@@ -243,6 +251,119 @@ class PasskeyCreationActivity : BasePGPActivity() {
       .orElse(null)
     return match?.let {match.absolutePathString()}  
   }
+
+/*
+  private fun createPasskey(requestJson: String, clientDataHash: ByteArray?) {
+      val requestOptions = PublicKeyCredentialCreationOptions(requestJson)
+      val keyAlgo = requestOptions.pubKeyCredParams[0].alg // RP's preferred key algorithm -8: EdDSA, -7: ES256
+
+      var credentialId = binding.credId.text.toString().hexToByteArray()
+
+      // Generate a credential key pair
+      val keyPairGenerator =
+        if(keyAlgo == -8) {  // EdDSA
+          KeyPairGenerator.getInstance("Ed25519")
+        }
+        else { // ES256 key as a fallback
+          KeyPairGenerator.getInstance("EC").also{ it.initialize(ECGenParameterSpec("secp256r1")) }
+        }
+      val keyPair = keyPairGenerator.generateKeyPair()
+
+      // Create AuthenticatorAttestationResponse object to pass to FidoPublicKeyCredential
+      val response = AuthenticatorAttestationResponse(
+          requestOptions = requestOptions,
+          credentialId = credentialId,
+          credentialPublicKey = getPublicKeyFromKeyPair(keyPair), //CBOR
+          origin = CredmanUtils.appInfoToOrigin(callingAppInfo),
+          up = true,
+          uv = true,
+          be = true,
+          bs = true,
+          packageName = callingAppInfo.packageName,
+          clientDataHash = clientDataHash
+      )
+
+      val credential = FidoPublicKeyCredential(
+          rawId = credentialId, response = response , authenticatorAttachment = "platform"
+      )
+
+//      //add easy accessors fields as defined in https://github.com/w3c/webauthn/pull/1887
+//      val credentialJson = populateEasyAccessorFields(credential.json(),rpid, keyPair,credentialId)
+//
+//      CreatePublicKeyCredentialResponse(credentialJson)
+  }
+*/
+ 
+  // credential public key in CBOR format
+  private fun getPublicKeyFromKeyPair(keyPair: KeyPair?, algo: Int): ByteArray {
+    
+    if (keyPair == null || algo != -8 && keyPair.public !is ECPublicKey) return ByteArray(0)
+
+    if (algo != -8 && keyPair.public !is ECPublicKey) return ByteArray(0)
+
+    return if(algo == -8) { // EdDSA
+      // Extract the raw 32-byte Ed25519 public key from the encoded form
+      val encodedKey = keyPair.public.encoded
+
+      // Ed25519 public keys in X.509 format have the raw 32 bytes at the end
+      // Structure: SEQUENCE { SEQUENCE { OID }, BIT STRING { raw key } }
+      // We need to extract just the 32-byte key
+      val rawKeyBytes = if (encodedKey.size >= 32) {
+          encodedKey.sliceArray((encodedKey.size - 32) until encodedKey.size)
+      } else {
+          return ByteArray(0)
+      }
+
+      // CBOR encoding for Ed25519:
+      // A4 = map with 4 items
+      // 01 = key 1 (kty: Key Type)
+      // 01 = value 1 (OKP: Octet string key pairs)
+      // 03 = key 3 (alg: Algorithm)
+      // 27 = value -8 (EdDSA)
+      // -1 (20 in CBOR) = key -1 (crv: Curve)
+      // 06 = value 6 (Ed25519)
+      // -2 (21 in CBOR) = key -2 (x: public key coordinate)
+      // 58 20 = byte string of length 32
+      // [32 bytes of key]
+      val cborHeader = "A4010103272006215820".hexToByteArray()
+
+      cborHeader + rawKeyBytes
+    }  
+    else { // ES256
+      val ecPubKey = keyPair.public as ECPublicKey
+      val ecPoint: ECPoint = ecPubKey.w
+
+      val byteX = bigIntToByteArray32(ecPoint.affineX)
+      val byteY = bigIntToByteArray32(ecPoint.affineY)
+
+      // refer to RFC9052 Section 7 for details
+      "A5010203262001215820".hexToByteArray() +
+         byteX+
+         "225820".hexToByteArray() +
+         byteY
+     }     
+  } 
+
+  private fun bigIntToByteArray32(bigInteger: BigInteger):ByteArray{
+    var ba = bigInteger.toByteArray()
+
+    if(ba.size < 32) {
+        // append zeros in front
+        ba = ByteArray(32) + ba
+    }
+    // get the last 32 bytes as bigint conversion sometimes put extra zeros at front
+    return ba.copyOfRange(ba.size - 32, ba.size)
+  }
+  //private fun populateEasyAccessorFields(json: String, rpid:String , keyPair: KeyPair, credentialId: ByteArray):String{
+  //  val response = Json.decodeFromString<CreatePublicKeyCredentialResponseJson>(json)
+  //  response.response.publicKeyAlgorithm = -7 // ES256
+  //  response.response.publicKey = CredmanUtils.b64Encode(keyPair.public.encoded)
+  //  response.response.authenticatorData = getAuthData(rpid, credentialId, keyPair)
+
+  //  Log.d("MainActivity","=== populateEasyAccessorFields AFTER === "+ Json.encodeToString(response))
+  //  return Json.encodeToString(response)
+  //}
+  //
 
   companion object {
 

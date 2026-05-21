@@ -104,3 +104,17 @@ fun ByteArrayOutputStream.wipe() {
   }
   reset()
 }
+
+fun ByteArray.b64Encode():String {
+    return android.util.Base64.encodeToString(
+        this,
+        android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP or android.util.Base64.URL_SAFE
+    )
+}
+
+fun String.b64Decode():ByteArray{
+    return android.util.Base64.decode(
+        this,
+        android.util.Base64.NO_PADDING or android.util.Base64.NO_WRAP or android.util.Base64.URL_SAFE
+    )
+}
