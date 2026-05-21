@@ -5,6 +5,10 @@
 
 package app.passwordstore.ui.crypto
 
+import java.time.Instant
+import app.passwordstore.util.credman.CredmanUtils
+import app.passwordstore.util.passkey.PasskeyCredential
+import app.passwordstore.util.passkey.FidoUser
 import java.math.BigInteger
 import java.security.interfaces.ECPrivateKey
 import java.security.interfaces.ECPublicKey
@@ -108,6 +112,7 @@ import androidx.credentials.webauthn.AuthenticatorAttestationResponse
 import androidx.credentials.webauthn.FidoPublicKeyCredential
 import androidx.credentials.webauthn.PublicKeyCredentialCreationOptions
 import androidx.credentials.webauthn.PublicKeyCredentialRequestOptions
+import org.bouncycastle.asn1.x509.SubjectPublicKeyInfo
 
 @AndroidEntryPoint
 class PasskeyCreationActivity : BasePGPActivity() {
@@ -252,16 +257,16 @@ class PasskeyCreationActivity : BasePGPActivity() {
     return match?.let {match.absolutePathString()}  
   }
 
-/*
-  private fun createPasskey(requestJson: String, clientDataHash: ByteArray?) {
+
+  private fun createPasskeyCredential(requestJson: String) : PasskeyCredential {
       val requestOptions = PublicKeyCredentialCreationOptions(requestJson)
-      val keyAlgo = requestOptions.pubKeyCredParams[0].alg // RP's preferred key algorithm -8: EdDSA, -7: ES256
+      val alg = requestOptions.pubKeyCredParams[0].alg.toInt() // RP's preferred key algorithm -8: EdDSA, -7: ES256
 
       var credentialId = binding.credId.text.toString().hexToByteArray()
 
       // Generate a credential key pair
       val keyPairGenerator =
-        if(keyAlgo == -8) {  // EdDSA
+        if(alg == -8) {  // EdDSA
           KeyPairGenerator.getInstance("Ed25519")
         }
         else { // ES256 key as a fallback
@@ -269,39 +274,49 @@ class PasskeyCreationActivity : BasePGPActivity() {
         }
       val keyPair = keyPairGenerator.generateKeyPair()
 
-      // Create AuthenticatorAttestationResponse object to pass to FidoPublicKeyCredential
-      val response = AuthenticatorAttestationResponse(
-          requestOptions = requestOptions,
-          credentialId = credentialId,
-          credentialPublicKey = getPublicKeyFromKeyPair(keyPair), //CBOR
-          origin = CredmanUtils.appInfoToOrigin(callingAppInfo),
-          up = true,
-          uv = true,
-          be = true,
-          bs = true,
-          packageName = callingAppInfo.packageName,
-          clientDataHash = clientDataHash
+      return PasskeyCredential (
+        credentialId = credentialId,
+        privateKey = keyPair.private.encoded,
+        publicKey = keyPair.public.encoded,
+        alg = alg,
+        rpId = requestOptions.rp.id,
+        user = FidoUser(id = requestOptions.user.id, name = requestOptions.user.name, displayName = requestOptions.user.displayName),
+        createdAt = Instant.now(),
       )
+  }
+  
 
-      val credential = FidoPublicKeyCredential(
-          rawId = credentialId, response = response , authenticatorAttachment = "platform"
-      )
+/*
+  fun generateKeyPair(alg: Int): Pair<ByteArray, ByteArray> {
+    val keyPairGenerator = KeyPairGenerator.getInstance("EC")
+    keyPairGenerator.initialize(ECGenParameterSpec("secp256r1"), secureRandom)
+    val keyPair = keyPairGenerator.generateKeyPair()
 
-//      //add easy accessors fields as defined in https://github.com/w3c/webauthn/pull/1887
-//      val credentialJson = populateEasyAccessorFields(credential.json(),rpid, keyPair,credentialId)
-//
-//      CreatePublicKeyCredentialResponse(credentialJson)
+    val publicKeyBytes =
+      SubjectPublicKeyInfo.getInstance(keyPair.public.encoded).publicKeyData.bytes
+    val privateKeyBytes = keyPair.private.encoded
+
+    return Pair(privateKeyBytes, publicKeyBytes)
+
+    val keyPairGenerator =
+      if(alg == -8) {  // EdDSA
+        KeyPairGenerator.getInstance("Ed25519")
+      }
+      else { // ES256 key as a fallback
+        KeyPairGenerator.getInstance("EC").also{ it.initialize(ECGenParameterSpec("secp256r1")) }
+      }
+    val keyPair = keyPairGenerator.generateKeyPair()
   }
 */
  
   // credential public key in CBOR format
-  private fun getPublicKeyFromKeyPair(keyPair: KeyPair?, algo: Int): ByteArray {
+  private fun getPublicKeyFromKeyPair(keyPair: KeyPair?, alg: Int): ByteArray {
     
-    if (keyPair == null || algo != -8 && keyPair.public !is ECPublicKey) return ByteArray(0)
+    if (keyPair == null || alg != -8 && keyPair.public !is ECPublicKey) return ByteArray(0)
 
-    if (algo != -8 && keyPair.public !is ECPublicKey) return ByteArray(0)
+    if (alg != -8 && keyPair.public !is ECPublicKey) return ByteArray(0)
 
-    return if(algo == -8) { // EdDSA
+    return if(alg == -8) { // EdDSA
       // Extract the raw 32-byte Ed25519 public key from the encoded form
       val encodedKey = keyPair.public.encoded
 
